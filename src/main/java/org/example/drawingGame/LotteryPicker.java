@@ -13,7 +13,7 @@ public class LotteryPicker {
     private final ConcurrentHashMap<String, AtomicInteger> userDrawCountMap = new ConcurrentHashMap<>();
 
     // 一位玩家最多抽獎次數
-    private final int MAX_DRAW_COUNT = 1;
+    private final int MAX_DRAW_COUNT = 3;
 
     public LotteryPicker(List<Prize> prizes) {
         List<PrizeRange> result = new ArrayList<>();
@@ -61,12 +61,12 @@ public class LotteryPicker {
 
     public String draw(String userId) {
         AtomicInteger count = userDrawCountMap.computeIfAbsent(userId, k -> new AtomicInteger(0));
-        int current = count.incrementAndGet();
-
-        if (current > MAX_DRAW_COUNT) {
-            current = count.decrementAndGet();
-            throw new RuntimeException(userId + "已經抽獎" + current + "次, 達抽獎次數限制: " + MAX_DRAW_COUNT);
-        }
+        count.updateAndGet(prev -> {
+            if (prev >= MAX_DRAW_COUNT) {
+                throw new RuntimeException(userId + " 已經抽獎 " + prev + " 次，達抽獎次數限制: " + MAX_DRAW_COUNT);
+            }
+            return prev + 1;
+        });
 
         double random = Math.random() * 100;
         for (PrizeRange range : prizeRangeList) {
