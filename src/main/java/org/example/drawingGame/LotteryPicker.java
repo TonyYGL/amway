@@ -1,12 +1,19 @@
 package org.example.drawingGame;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LotteryPicker {
 
     private final List<PrizeRange> prizeRangeList;
+
+    // 每位玩家抽獎次數
+    private final ConcurrentHashMap<String, AtomicInteger> userDrawCountMap = new ConcurrentHashMap<>();
+
+    // 一位玩家最多抽獎次數
+    private final int MAX_DRAW_COUNT = 1;
 
     public LotteryPicker(List<Prize> prizes) {
         List<PrizeRange> result = new ArrayList<>();
@@ -52,7 +59,15 @@ public class LotteryPicker {
         return result;
     }
 
-    public String draw() {
+    public String draw(String userId) {
+        AtomicInteger count = userDrawCountMap.computeIfAbsent(userId, k -> new AtomicInteger(0));
+        int current = count.incrementAndGet();
+
+        if (current > MAX_DRAW_COUNT) {
+            current = count.decrementAndGet();
+            throw new RuntimeException(userId + "已經抽獎" + current + "次, 達抽獎次數限制: " + MAX_DRAW_COUNT);
+        }
+
         double random = Math.random() * 100;
         for (PrizeRange range : prizeRangeList) {
             if (range.inRange(random)) {
