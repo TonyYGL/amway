@@ -17,7 +17,7 @@ public class LotteryPickerTest {
     private final int DRAWING_COUNT_AT_ONCE = 1000;
 
     // 玩家個數, 模擬重複抽獎行為
-    private final int USER_COUNT = 900;
+    private final int USER_COUNT = 990;
 
     @Test
     public void testDrawingGame() throws Exception {
